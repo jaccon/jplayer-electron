@@ -1,0 +1,141 @@
+body {
+  margin: 0;
+  overflow: hidden;
+  background-color: #000000;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: Georgia, 'Times New Roman', Times, serif !important;
+  font-size: 0.9em;
+}
+#video-container {
+  flex-grow: 1;
+  position: relative;
+}
+#video, #webview {
+  width: 100%;
+  height: 100%;
+}
+#controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+}
+#control-buttons {
+  display: flex;
+  align-items: center;
+}
+button {
+  padding: 10px;
+  color: #ffffff;
+  background-color: #000000; /* Change button background color to black */
+  border: 1px solid #111111; /* Decrease border size */
+  border-radius: 10px; /* Maintain rounded corners */
+  cursor: pointer;
+  margin-right: 10px;
+}
+button:hover {
+  background-color: #333333; /* Darken button background color on hover */
+}
+#timeline {
+  flex-grow: 1;
+  margin: 0 10px;
+  display: none;
+}
+#fileInfo {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif !important;
+  font-size: 0.8em;
+}
+#inputDialog {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 20px;
+  color: #fff;
+}
+#inputDialog input {
+  width: 100%;
+  padding: 5px;
+  margin-top: 10px;
+}
+#inputDialog button {
+  padding: 5px 10px;
+  margin-top: 10px;
+}
+
+#draggable-corner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  -webkit-app-region: drag; /* Allow dragging the window */
+  cursor: move;
+  z-index: 9999; /* Ensure it's above other content */
+  background: transparent; /* Make it transparent */
+}
+
+#playlist-container {
+  display: none;
+  flex-grow: 1;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  overflow-y: auto;
+}
+
+#title-bar {
+  background-color: #000;
+  font-size: 0.8em !important;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 5px;
+  margin-left: 5px;
+  color: #fff;
+  -webkit-app-region: drag; /* Allow dragging the window */
+  height: 30px; /* Height of the title bar */
+  padding: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #000; /* Black border at the bottom */
+}
+#title-bar-buttons {
+  display: flex;
+}
+#title-bar-buttons button {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+}
+#title-bar-buttons button:hover {
+  background-color: #333;
+}
+
+#video-container {
+  display: flex;
+}
+#video {
+  flex: 1;
+}
+#playlist {
+  width: 10%;
+  background-color: #222;
+  overflow-y: auto; /* Adiciona scroll quando a lista for maior que a janela */
+}
+.playlist-item {
+  color: #fff;
+  padding: 10px;
+  cursor: pointer;
+}
+.playlist-item:hover {
+  background-color: #444;
+}

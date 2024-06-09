@@ -1,0 +1,7 @@
+{
+  "commands": {
+    "play": "play",
+    "pause": "pause",
+    "stop": "stop"
+  }
+}

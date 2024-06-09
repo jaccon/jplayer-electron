@@ -1,0 +1,17 @@
+{
+  "name": "JPlayer",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^30.0.9"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  }
+}

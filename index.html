@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JPlay ® Alpha 0.1</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <style>
+    body {
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #video-container {
+      flex: 1;
+      background: none; /* Remova o fundo degradê do vídeo */
+    }
+
+    #title-bar {
+      background-color: #000;
+      font-size: 0.8em !important;
+      font-family: Arial, Helvetica, sans-serif;
+      padding: 5px;
+      margin-left: 5px;
+      color: #fff;
+      -webkit-app-region: drag; /* Allow dragging the window */
+      height: 30px; /* Height of the title bar */
+      padding: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #000; /* Black border at the bottom */
+    }
+    #title-bar-buttons {
+      display: flex;
+    }
+    #title-bar-buttons button {
+      background-color: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      padding: 5px;
+    }
+    #title-bar-buttons button:hover {
+      background-color: #333;
+    }
+    #video-container {
+      display: flex;
+    }
+    #video {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="title-bar">
+    <div>JPlay ® Alpha 0.1</div>
+  </div>
+  <div id="video-container">
+    <video id="video" controls></video>
+    <webview id="webview"></webview>
+  </div>
+  <div id="controls">
+    <div id="control-buttons">
+      <button id="play">Play</button>
+      <button id="stop">Stop</button>
+      <input type="range" id="timeline" min="0" value="0">
+    </div>
+    <div id="fileInfo">
+      <p id="fileName">File: </p>
+      <p id="fileDuration">Duration: </p>
+      <p id="voiceStatus"></p>
+    </div>
+  </div>
+
+  <div id="inputDialog">
+    <h3>Enter YouTube URL:</h3>
+    <input type="text" id="youtubeUrl">
+    <button id="submitUrl">OK</button>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    const video = document.getElementById('video');
+    const webview = document.getElementById('webview');
+    const playButton = document.getElementById('play');
+    const stopButton = document.getElementById('stop');
+    const timeline = document.getElementById('timeline');
+    const inputDialog = document.getElementById('inputDialog');
+    const submitUrlButton = document.getElementById('submitUrl');
+    const youtubeUrlInput = document.getElementById('youtubeUrl');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileDuration = document.getElementById('fileDuration');
+    const minimizeButton = document.getElementById('minimize');
+    const maximizeButton = document.getElementById('maximize');
+    const closeButton = document.getElementById('close');
+    const playlistToggleButton = document.getElementById('playlistToggle');
+    let playlistWindow = null;
+
+    // Carregar comandos de voz do arquivo JSON
+    let voiceCommands = {};
+
+    fetch('voiceCommands.json')
+      .then(response => response.json())
+      .then(data => {
+        voiceCommands = data;
+        console.log('Voice commands loaded:', voiceCommands);
+      })
+      .catch(error => console.error('Error loading voice commands:', error));
+
+    playButton.addEventListener('click', () => {
+      if (video.paused) {
+        video.play();
+        playButton.textContent = 'Pause';
+      } else {
+        video.pause();
+        playButton.textContent = 'Play';
+      }
+    });
+
+    stopButton.addEventListener('click', () => {
+      video.pause();
+      video.currentTime = 0;
+      playButton.textContent = 'Play';
+    });
+
+    video.addEventListener('timeupdate', () => {
+      timeline.value = (video.currentTime / video.duration) * 100;
+    });
+
+    timeline.addEventListener('input', () => {
+      video.currentTime = (timeline.value / 100) * video.duration;
+    });
+
+    ipcRenderer.on('open-file', (event, filePath) => {
+      webview.style.display = 'none';
+      video.style.display = 'block';
+      video.src = filePath;
+      video.load();
+      video.onloadedmetadata = () => {
+        fileName.textContent = `File: ${filePath.split('/').pop()}`;
+        const duration = new Date(video.duration * 1000).toISOString().substr(11, 8);
+        fileDuration.textContent = `Duration: ${duration}`;
+        fileInfo.style.display = 'block';
+      };
+      video.play();
+      playButton.textContent = 'Pause';
+    });
+
+    ipcRenderer.on('open-youtube-url', (event) => {
+      inputDialog.style.display = 'block';
+    });
+
+    submitUrlButton.addEventListener('click', () => {
+      const url = youtubeUrlInput.value;
+      if (url) {
+        webview.style.display = 'block';
+        webview.src = url;
+        inputDialog.style.display = 'none';
+      }
+    });
+
+    minimizeButton.addEventListener('click', () => {
+      ipcRenderer.send('minimize');
+    });
+
+    maximizeButton.addEventListener('click', () => {
+      ipcRenderer.send('maximize');
+    });
+
+    closeButton.addEventListener('click', () => {
+      ipcRenderer.send('close');
+    });
+
+    playlistToggleButton.addEventListener('click', () => {
+      if (playlistWindow === null || playlistWindow.closed) {
+        playlistWindow = window.open('playlist.html', 'Playlist', 'width=400,height=600');
+      } else {
+        playlistWindow.close();
+      }
+    });
+
+    // Adicionando reconhecimento de voz
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      console.log('SpeechRecognition is supported.');
+      const recognition = new SpeechRecognition();
+      recognition.continuous = true;
+      recognition.lang = 'en-US';
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[event.resultIndex][0].transcript.trim().toLowerCase();
+        console.log('Recognized:', transcript);
+
+        for (const command in voiceCommands) {
+          if (transcript.includes(voiceCommands[command])) {
+            console.log('Voice command recognized:', command);
+            ipcRenderer.send('voice-command', command);
+            break;
+          }
+        }
+      };
+
+      recognition.onerror = function(event) {
+        console.error('Speech recognition error:', event.error);
+      };
+
+      recognition.onstart = function() {
+        console.log('Voice recognition started.');
+      };
+
+      recognition.onend = function() {
+        console.log('Voice recognition ended. Restarting...');
+        recognition.start();
+      };
+
+      recognition.start();
+
+      ipcRenderer.on('play-video', () => {
+        console.log('Play video command received.');
+        video.play();
+        playButton.textContent = 'Pause';
+      });
+
+      ipcRenderer.on('pause-video', () => {
+        console.log('Pause video command received.');
+        video.pause();
+        playButton.textContent = 'Play';
+      });
+
+      ipcRenderer.on('stop-video', () => {
+        console.log('Stop video command received.');
+        video.pause();
+        video.currentTime = 0;
+        playButton.textContent = 'Play';
+      });
+    } else {
+      console.error('SpeechRecognition not supported in this browser.');
+    }
+
+    
+  </script>
+</body>
+</html>
